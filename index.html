@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<head>
+	<title>requestIdleCallback</title>
+	<style type="text/css">
+		#root {
+			width: 760px;
+			margin: 30px auto;
+			display: flex;
+			font-size: 14px;
+		}
+		.right,
+		.left {
+			width: 50%;
+			flex: 1;
+		}
+	</style>
+</head>
+<html lang="en">
+	<body>
+		<div id="root">
+			<div class="left">
+				<button id="btn1" onclick="calc()">阻塞计数</button>
+				<div id="leftValue">0</div>
+				<div id="leftTime">耗时: 0 ms</div>
+				<br />
+				<input placeholder="计数时交互测试" />
+			</div>
+			<div class="right">
+				<button id="btn2" onclick="calc2()">空闲计数</button>
+				<div id="rightValue">0</div>
+				<div id="rightTime">耗时: 0 ms</div>
+				<br />
+				<input placeholder="计数时交互测试" />
+			</div>
+		</div>
+		<script>
+			var MAX_VALUE = 1200000;
+			var seq = 1;
+			function calc() {
+				leftValue.innerHTML = 0;
+				leftTime.innerHTML = "计数中...";
+				setTimeout(function () {
+					var s = Date.now();
+					for (let i = 0; i <= MAX_VALUE; i++) {
+						leftValue.innerHTML = i;
+					}
+					leftTime.innerHTML = "耗时: " + (Date.now() - s) + " ms";
+				}, 0);
+			}
+			function calc2() {
+				seq++;
+				var c = seq;
+				var count = 0;
+				var id = requestIdleCallback(calc);
+				var s = Date.now();
+				rightTime.innerHTML = "计数中...";
+
+				function calc(idleDeadline) {
+					while (1) {
+						if (seq !== c) break;
+						count++;
+						if (idleDeadline.timeRemaining() <= 0) {
+							id = requestIdleCallback(calc);
+							break;
+						}
+						if (count > MAX_VALUE) {
+							cancelIdleCallback(id);
+							rightTime.innerHTML =
+								"耗时: " + (Date.now() - s) + " ms";
+							break;
+						}
+
+						rightValue.innerHTML = count;
+					}
+				}
+				id = requestIdleCallback(calc);
+			}
+		</script>
+	</body>
+</html>
